@@ -1,0 +1,9 @@
+{
+    "Name": "Simber's Randomizer",
+    "Description": "A port of the TF2 Randomizer plugin made by Simber",
+    "Version": "0.0.1",
+    "HasVeniceEXT": true,
+    "Dependencies": {
+        "veniceext": "^1.0.0"
+    }
+}
