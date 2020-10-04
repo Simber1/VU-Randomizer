@@ -85,25 +85,68 @@ function RandomizerServer:OnEquipWeapon(player)
 end
 
 function RandomizerServer:ReplaceWeapons(player)
+
+    local noAttachments = {}
     --Seed the randomness
     math.randomseed(SharedUtils:GetTimeMS())
-
-    --Generate random weapon names and then getting the weapon
+    
+    --Generates a primaryWeaponName randomly from the primaryWeaponsTable, It's needed for the attachments so it has to be done here and not in the weapon generation
     local primaryWeaponName = self.primaryTable[math.random(#self.primaryTable)]
-    local primaryWeapon = self.weaponTable[primaryWeaponName]
 
-    local secondaryWeaponName = self.secondaryTable[math.random(#self.secondaryTable)]
-    local secondaryWeapon = self.weaponTable[secondaryWeaponName]
+    Weapons = self:WeaponGeneration(primaryWeaponName)
+    -- Returns a table weapons, 1 is Primary, 2 is Secondary, 3 is Third Slot, 4 is 4th Slot, 5 is Knife
+    local primaryAttachments = self:RandomizerAttachments(primaryWeaponName)
+    
 
-    local thirdSlotWeaponName = self.thirdSlotTable[math.random(#self.thirdSlotTable)]
-    local thirdSlotWeapon = self.weaponTable[thirdSlotWeaponName]
+    --Spawning the player with a random primary and the attachments from above
+    player:SelectWeapon(WeaponSlot.WeaponSlot_0, Weapons[1], primaryAttachments)
+    player:SelectWeapon(WeaponSlot.WeaponSlot_1, Weapons[2], noAttachments)
 
-    local fourthSlotWeaponName = self.fourthSlotTable[math.random(#self.fourthSlotTable)]
-    local fourthSlotWeapon = self.weaponTable[fourthSlotWeaponName]
+    --If the weapon is a medic or ammo bag put it in slot 4 and give them a knife in slot 2, if it's not do the opisite
+    if Weapons[3] == self.bagsTable[1] or Weapons[3] == self.bagsTable[2] then
+         player:SelectWeapon(WeaponSlot.WeaponSlot_2, Weapons[5], noAttachments) --Trying to remove the players weapons in slots 2 and 3
+        -- player:SelectWeapon(WeaponSlot.WeaponSlot_3, SoldierWeaponUnlockAsset(), noAttachments)
+        player:SelectWeapon(WeaponSlot.WeaponSlot_4, Weapons[3], noAttachments)
+        player:SelectWeapon(WeaponSlot.WeaponSlot_5, Weapons[4], noAttachments)
+    else
+        player:SelectWeapon(WeaponSlot.WeaponSlot_2, Weapons[3], noAttachments)
+        -- player:SelectWeapon(WeaponSlot.WeaponSlot_3, SoldierWeaponUnlockAsset(), noAttachments) --Trying to remove the players weapons in slots 3 and 4
+        player:SelectWeapon(WeaponSlot.WeaponSlot_4, Weapons[5], noAttachments)
+        player:SelectWeapon(WeaponSlot.WeaponSlot_5, Weapons[4], noAttachments)
+    end
+    player:SelectWeapon(WeaponSlot.WeaponSlot_7, Weapons[5], noAttachments)     
+end
 
-    local knifeWeapon = self.weaponTable[self.knivesTable[math.random(#self.knivesTable)]]
+function RandomizerServer:Respawn(player)
+    print("On Spawn Firing")
+    self:ReplaceWeapons(player)
+end
 
-    local noOpticAttachment = {}
+function RandomizerServer:WeaponGeneration(primaryWeaponName)
+        --Seed the randomness
+        math.randomseed(SharedUtils:GetTimeMS())
+        weapons = {}
+        --Generate random weapon names and then getting the weapon
+
+        local primaryWeapon = self.weaponTable[primaryWeaponName]
+    
+        local secondaryWeaponName = self.secondaryTable[math.random(#self.secondaryTable)]
+        local secondaryWeapon = self.weaponTable[secondaryWeaponName]
+    
+        local thirdSlotWeaponName = self.thirdSlotTable[math.random(#self.thirdSlotTable)]
+        local thirdSlotWeapon = self.weaponTable[thirdSlotWeaponName]
+    
+        local fourthSlotWeaponName = self.fourthSlotTable[math.random(#self.fourthSlotTable)]
+        local fourthSlotWeapon = self.weaponTable[fourthSlotWeaponName]
+    
+        local knifeWeapon = self.weaponTable[self.knivesTable[math.random(#self.knivesTable)]]
+
+        weapons = {primaryWeapon,secondaryWeapon,thirdSlotWeapon,fourthSlotWeapon,knifeWeapon}
+        -- Returns a table weapons, 1 is Primary, 2 is Secondary, 3 is Third Slot, 4 is 4th Slot, 5 is Knife
+        return weapons
+end
+
+function RandomizerServer:RandomizerAttachments(primaryWeaponName)
     local possibleSights = {}
     local possibleBarrels = {}
     local possibleAmmos = {}
@@ -137,31 +180,7 @@ function RandomizerServer:ReplaceWeapons(player)
 
     --Slapping all the attachments into 1 table
     local attachments = {possibleSights[math.random(#possibleSights)],possibleBarrels[math.random(#possibleBarrels)],possibleAmmos[math.random(#possibleAmmos)],possibleRails[math.random(#possibleRails)]}
-    local noAttachments = {}
-
-    --Spawning the player with a random primary and the attachments from above
-    player:SelectWeapon(WeaponSlot.WeaponSlot_0, primaryWeapon, attachments)
-    player:SelectWeapon(WeaponSlot.WeaponSlot_1, secondaryWeapon, noAttachments)
-
-    --If the weapon is a medic or ammo bag put it in slot 4 and give them a knife in slot 2, if it's not do the opisite
-    if thirdSlotWeaponName == self.bagsTable[1] or thirdSlotWeaponName == self.bagsTable[2] then
-         player:SelectWeapon(WeaponSlot.WeaponSlot_2, knifeWeapon, noAttachments) --Trying to remove the players weapons in slots 2 and 3
-        -- player:SelectWeapon(WeaponSlot.WeaponSlot_3, SoldierWeaponUnlockAsset(), noAttachments)
-        player:SelectWeapon(WeaponSlot.WeaponSlot_4, thirdSlotWeapon, noAttachments)
-        player:SelectWeapon(WeaponSlot.WeaponSlot_5, fourthSlotWeapon, noAttachments)
-    else
-        player:SelectWeapon(WeaponSlot.WeaponSlot_2, thirdSlotWeapon, noAttachments)
-        -- player:SelectWeapon(WeaponSlot.WeaponSlot_3, SoldierWeaponUnlockAsset(), noAttachments) --Trying to remove the players weapons in slots 3 and 4
-        player:SelectWeapon(WeaponSlot.WeaponSlot_4, knifeWeapon, noAttachments)
-        player:SelectWeapon(WeaponSlot.WeaponSlot_5, fourthSlotWeapon, noAttachments)
-    end
-    player:SelectWeapon(WeaponSlot.WeaponSlot_7, knifeWeapon, noAttachments)     
+    return attachments
 end
-
-function RandomizerServer:Respawn(player)
-    print("On Spawn Firing")
-    self:ReplaceWeapons(player)
-end
-
 
 g_RandomizerServer = RandomizerServer()
