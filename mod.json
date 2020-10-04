@@ -1,5 +1,6 @@
 {
     "Name": "Simber's Randomizer",
+    "Author": "Simber",
     "Description": "A port of the TF2 Randomizer plugin made by Simber",
     "Version": "0.0.1",
     "HasVeniceEXT": true,
