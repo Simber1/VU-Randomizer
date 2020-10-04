@@ -21,6 +21,9 @@ function RandomizerServer:RegisterVars()
     self.knivesTable = {"Knife_Razor","Knife"}
     self.bagsTable = {"Medkit","Ammobag"}
     self.sightTable = {"BallisticScope","scope","Scope","PKA","IRNV","NoOptics","PSO-1","PK-AS","PKS-07","Acog","ACOG","M145","Kobra","EOTech","Eotech","RX01","RifleScope"}
+    self.barrelAttachmentsTable = {"ExtendedMag","TargetPointer","HeavyBarrel","Flashlight","Flashsuppressor","Suppressor","FlashSuppressor","Silencer","Barrel"}
+    self.railAttachmentsTable = {"StraightPull","Bipod","Foregrip","NoSecondaryRail"}  
+    self.shotgunRoundsTable = {"12gBuckshot","Slug","Flechette","Frag"}
     print("Registering Vars")
     
 end
@@ -82,9 +85,10 @@ function RandomizerServer:OnEquipWeapon(player)
 end
 
 function RandomizerServer:ReplaceWeapons(player)
-
+    --Seed the randomness
     math.randomseed(SharedUtils:GetTimeMS())
 
+    --Generate random weapon names and then getting the weapon
     local primaryWeaponName = self.primaryTable[math.random(#self.primaryTable)]
     local primaryWeapon = self.weaponTable[primaryWeaponName]
 
@@ -99,33 +103,53 @@ function RandomizerServer:ReplaceWeapons(player)
 
     local knifeWeapon = self.weaponTable[self.knivesTable[math.random(#self.knivesTable)]]
 
-    local primaryAttachments = {}
-
-    local noAttachments = {}
     local noOpticAttachment = {}
     local possibleSights = {}
-    print(self.sightTable)
-    print(#self.sightTable)
+    local possibleBarrels = {}
+    local possibleAmmos = {}
+    local possibleRails = {}
+
+    --Generating a table of possible attachments per attachment slot
+
     for i=1, #self.sightTable do
         if self.unlockTables[primaryWeaponName][self.sightTable[i]] ~= nil then
             table.insert(possibleSights, self.unlockTables[primaryWeaponName][self.sightTable[i]])
         end
     end
-    local attachments = {}
-    
 
-    player:SelectWeapon(WeaponSlot.WeaponSlot_0, primaryWeapon, {possibleSights[math.random(#possibleSights)]})
+    for i=1, #self.barrelAttachmentsTable do
+        if self.unlockTables[primaryWeaponName][self.barrelAttachmentsTable[i]] ~= nil then
+            table.insert(possibleBarrels, self.unlockTables[primaryWeaponName][self.barrelAttachmentsTable[i]])
+        end
+    end
+
+    for i=1, #self.railAttachmentsTable do
+        if self.unlockTables[primaryWeaponName][self.railAttachmentsTable[i]] ~= nil then
+            table.insert(possibleRails, self.unlockTables[primaryWeaponName][self.railAttachmentsTable[i]])
+        end
+    end
+
+    for i=1, #self.shotgunRoundsTable do
+        if self.unlockTables[primaryWeaponName][self.shotgunRoundsTable[i]] ~= nil then
+            table.insert(possibleAmmos, self.unlockTables[primaryWeaponName][self.shotgunRoundsTable[i]])
+        end
+    end
+
+    --Slapping all the attachments into 1 table
+    local attachments = {possibleSights[math.random(#possibleSights)],possibleBarrels[math.random(#possibleBarrels)],possibleAmmos[math.random(#possibleAmmos)],possibleRails[math.random(#possibleRails)]}
+    local noAttachments = {}
+
+    --Spawning the player with a random primary and the attachments from above
+    player:SelectWeapon(WeaponSlot.WeaponSlot_0, primaryWeapon, attachments)
     player:SelectWeapon(WeaponSlot.WeaponSlot_1, secondaryWeapon, noAttachments)
-    local empty = SoldierWeaponUnlockAsset()
-    print(thirdSlotWeaponName)
+
+    --If the weapon is a medic or ammo bag put it in slot 4 and give them a knife in slot 2, if it's not do the opisite
     if thirdSlotWeaponName == self.bagsTable[1] or thirdSlotWeaponName == self.bagsTable[2] then
-        print("In slot 4,5")
          player:SelectWeapon(WeaponSlot.WeaponSlot_2, knifeWeapon, noAttachments) --Trying to remove the players weapons in slots 2 and 3
         -- player:SelectWeapon(WeaponSlot.WeaponSlot_3, SoldierWeaponUnlockAsset(), noAttachments)
         player:SelectWeapon(WeaponSlot.WeaponSlot_4, thirdSlotWeapon, noAttachments)
         player:SelectWeapon(WeaponSlot.WeaponSlot_5, fourthSlotWeapon, noAttachments)
     else
-        print("In slot 2,3")
         player:SelectWeapon(WeaponSlot.WeaponSlot_2, thirdSlotWeapon, noAttachments)
         -- player:SelectWeapon(WeaponSlot.WeaponSlot_3, SoldierWeaponUnlockAsset(), noAttachments) --Trying to remove the players weapons in slots 3 and 4
         player:SelectWeapon(WeaponSlot.WeaponSlot_4, knifeWeapon, noAttachments)
