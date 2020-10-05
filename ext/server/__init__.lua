@@ -32,6 +32,7 @@ function RandomizerServer:RegisterEvents()
 	Events:Subscribe('Partition:Loaded', self, self.OnPartitionLoaded)
     Events:Subscribe('Level:Loaded', self, self.OnLevelLoaded)
     Events:Subscribe('Player:Respawn', self, self.Respawn)
+    Events:Subscribe('Player:Created', self, self.PlayerCreated)
     print("RegisterEvents running")
 end
 
@@ -80,10 +81,6 @@ function RandomizerServer:OnLevelLoaded()
 	end
 end
 
-function RandomizerServer:OnEquipWeapon(player)
-
-end
-
 function RandomizerServer:ReplaceWeapons(player)
 
     local noAttachments = {}
@@ -104,7 +101,7 @@ function RandomizerServer:ReplaceWeapons(player)
 
     --If the weapon is a medic or ammo bag put it in slot 4 and give them a knife in slot 2, if it's not do the opisite
     if Weapons[3] == self.bagsTable[1] or Weapons[3] == self.bagsTable[2] then
-         player:SelectWeapon(WeaponSlot.WeaponSlot_2, Weapons[5], noAttachments) --Trying to remove the players weapons in slots 2 and 3
+        player:SelectWeapon(WeaponSlot.WeaponSlot_2, Weapons[5], noAttachments) --Trying to remove the players weapons in slots 2 and 3
         -- player:SelectWeapon(WeaponSlot.WeaponSlot_3, SoldierWeaponUnlockAsset(), noAttachments)
         player:SelectWeapon(WeaponSlot.WeaponSlot_4, Weapons[3], noAttachments)
         player:SelectWeapon(WeaponSlot.WeaponSlot_5, Weapons[4], noAttachments)
@@ -119,7 +116,22 @@ end
 
 function RandomizerServer:Respawn(player)
     print("On Spawn Firing")
-    self:ReplaceWeapons(player)
+    if player.soldier == nil then
+        print("Soldier didn't exist")
+    end
+
+    local timeDelayed = 0.0
+
+    Events:Subscribe('Engine:Update', function(deltaTime) 
+        timeDelayed = timeDelayed + deltaTime
+        if timeDelayed >= 0.09 then
+            print("Delayed spawn")
+            self:ReplaceWeapons(player)
+            timeDelayed = 0
+            Events:Unsubscribe('Engine:Update')
+        end
+    end)
+
 end
 
 function RandomizerServer:WeaponGeneration(primaryWeaponName)
@@ -183,4 +195,7 @@ function RandomizerServer:RandomizerAttachments(primaryWeaponName)
     return attachments
 end
 
+function RandomizerServer:PlayerCreated(player)
+    print("Player Created!")
+end
 g_RandomizerServer = RandomizerServer()

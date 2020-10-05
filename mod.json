@@ -3,8 +3,10 @@
     "Author": "Simber",
     "Description": "A port of the TF2 Randomizer plugin made by Simber",
     "Version": "0.0.1",
+    "URL":"https://github.com/Simber1/VU-Randomizer",
     "HasVeniceEXT": true,
     "Dependencies": {
         "veniceext": "^1.0.0"
-    }
+    },
+    "Tags": ["randomizer"]
 }
