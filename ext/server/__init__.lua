@@ -20,6 +20,7 @@ function RandomizerServer:RegisterVars()
     self.fourthSlotTable = {"M224","Defib","EODBot","RadioBeacon","Repairtool","C4","M15","Claymore"}
     self.knivesTable = {"Knife_Razor","Knife"}
     self.bagsTable = {"Medkit","Ammobag"}
+    self.grenadeTable = {"M67"}
     self.sightTable = {"BallisticScope","scope","Scope","PKA","IRNV","NoOptics","PSO-1","PK-AS","PKS-07","Acog","ACOG","M145","Kobra","EOTech","Eotech","RX01","RifleScope"}
     self.barrelAttachmentsTable = {"ExtendedMag","TargetPointer","HeavyBarrel","Flashlight","Flashsuppressor","Suppressor","FlashSuppressor","Silencer","Barrel"}
     self.railAttachmentsTable = {"StraightPull","Bipod","Foregrip","NoSecondaryRail"}  
@@ -38,7 +39,7 @@ end
 
 -- Store the reference of all the SoldierWeaponUnlockAssets that get loaded
 function RandomizerServer:OnPartitionLoaded(partition)
-	local instances = partition.instances
+    local instances = partition.instances
 
     for _, instance in pairs(instances) do
         
@@ -48,9 +49,6 @@ function RandomizerServer:OnPartitionLoaded(partition)
 		
 			-- Weapons/SAIGA20K/U_SAIGA_20K --> SAIGA_20K
 			local weaponName = weaponUnlockAsset.name:match("/U_.+"):sub(4)
-            if weaponName == "Defib" then
-                print(weaponUnlockAsset.typeInfo)
-            end
 			self.weaponTable[weaponName] = weaponUnlockAsset
 		end
     end
@@ -58,7 +56,7 @@ end
 
 -- Once the everything is loaded, store the UnlockAssets in each CustomizationUnlockParts array (each array is an attachment/sight/camo slot).
 function RandomizerServer:OnLevelLoaded()
-	
+
 	for weaponName, weaponUnlockAsset in pairs(self.weaponTable) do
 	
 		if SoldierWeaponData(SoldierWeaponBlueprint(weaponUnlockAsset.weapon).object).customization ~= nil then -- Gadgets dont have customization
@@ -83,6 +81,11 @@ end
 
 function RandomizerServer:ReplaceWeapons(player)
 
+    --Remove all of the players customizations
+    local noWeaponsCustomizeSoldier = CustomizeSoldierData()
+    noWeaponsCustomizeSoldier.removeAllExistingWeapons = true
+    player.soldier:ApplyCustomization(noWeaponsCustomizeSoldier)
+
     local noAttachments = {}
     --Seed the randomness
     math.randomseed(SharedUtils:GetTimeMS())
@@ -93,25 +96,24 @@ function RandomizerServer:ReplaceWeapons(player)
     Weapons = self:WeaponGeneration(primaryWeaponName)
     -- Returns a table weapons, 1 is Primary, 2 is Secondary, 3 is Third Slot, 4 is 4th Slot, 5 is Knife
     local primaryAttachments = self:RandomizerAttachments(primaryWeaponName)
-    
 
     --Spawning the player with a random primary and the attachments from above
     player:SelectWeapon(WeaponSlot.WeaponSlot_0, Weapons[1], primaryAttachments)
     player:SelectWeapon(WeaponSlot.WeaponSlot_1, Weapons[2], noAttachments)
 
-    --If the weapon is a medic or ammo bag put it in slot 4 and give them a knife in slot 2, if it's not do the opisite
-    if Weapons[3] == self.bagsTable[1] or Weapons[3] == self.bagsTable[2] then
-        player:SelectWeapon(WeaponSlot.WeaponSlot_2, Weapons[5], noAttachments) --Trying to remove the players weapons in slots 2 and 3
-        -- player:SelectWeapon(WeaponSlot.WeaponSlot_3, SoldierWeaponUnlockAsset(), noAttachments)
+    --If the weapon is a medic or ammo bag put it in slot 4 if not put the gadget in slot 3
+    local slotThreeName = Weapons[3].name:match("/U_.+"):sub(4)
+    if slotThreeName == self.bagsTable[1] or slotThreeName == self.bagsTable[2] then
+        print("Using Slot 4 and 5")
         player:SelectWeapon(WeaponSlot.WeaponSlot_4, Weapons[3], noAttachments)
         player:SelectWeapon(WeaponSlot.WeaponSlot_5, Weapons[4], noAttachments)
     else
-        player:SelectWeapon(WeaponSlot.WeaponSlot_2, Weapons[3], noAttachments)
-        -- player:SelectWeapon(WeaponSlot.WeaponSlot_3, SoldierWeaponUnlockAsset(), noAttachments) --Trying to remove the players weapons in slots 3 and 4
-        player:SelectWeapon(WeaponSlot.WeaponSlot_4, Weapons[5], noAttachments)
+        print("Using Slot 3 and 5")
+        player:SelectWeapon(WeaponSlot.WeaponSlot_3, Weapons[3], noAttachments) 
         player:SelectWeapon(WeaponSlot.WeaponSlot_5, Weapons[4], noAttachments)
     end
-    player:SelectWeapon(WeaponSlot.WeaponSlot_7, Weapons[5], noAttachments)     
+    player:SelectWeapon(WeaponSlot.WeaponSlot_6, Weapons[5], noAttachments)
+    player:SelectWeapon(WeaponSlot.WeaponSlot_7, Weapons[6], noAttachments)     
 end
 
 function RandomizerServer:Respawn(player)
@@ -150,10 +152,12 @@ function RandomizerServer:WeaponGeneration(primaryWeaponName)
     
         local fourthSlotWeaponName = self.fourthSlotTable[math.random(#self.fourthSlotTable)]
         local fourthSlotWeapon = self.weaponTable[fourthSlotWeaponName]
+
+        local grenadeWeapon = self.weaponTable[self.grenadeTable[1]]
     
         local knifeWeapon = self.weaponTable[self.knivesTable[math.random(#self.knivesTable)]]
 
-        weapons = {primaryWeapon,secondaryWeapon,thirdSlotWeapon,fourthSlotWeapon,knifeWeapon}
+        weapons = {primaryWeapon,secondaryWeapon,thirdSlotWeapon,fourthSlotWeapon,grenadeWeapon,knifeWeapon}
         -- Returns a table weapons, 1 is Primary, 2 is Secondary, 3 is Third Slot, 4 is 4th Slot, 5 is Knife
         return weapons
 end
