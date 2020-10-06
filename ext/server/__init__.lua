@@ -33,7 +33,6 @@ function RandomizerServer:RegisterEvents()
 	Events:Subscribe('Partition:Loaded', self, self.OnPartitionLoaded)
     Events:Subscribe('Level:Loaded', self, self.OnLevelLoaded)
     Events:Subscribe('Player:Respawn', self, self.Respawn)
-    Events:Subscribe('Player:Created', self, self.PlayerCreated)
     print("RegisterEvents running")
 end
 
@@ -79,6 +78,26 @@ function RandomizerServer:OnLevelLoaded()
 	end
 end
 
+function RandomizerServer:Respawn(player)
+    print("On Spawn Firing")
+    if player.soldier == nil then
+        print("Soldier didn't exist")
+    end
+
+    local timeDelayed = 0.0
+
+    Events:Subscribe('Engine:Update', function(deltaTime) 
+        timeDelayed = timeDelayed + deltaTime
+        if timeDelayed >= 0.09 then
+            print("Delayed spawn")
+            self:ReplaceWeapons(player)
+            timeDelayed = 0
+            Events:Unsubscribe('Engine:Update')
+        end
+    end)
+
+end
+
 function RandomizerServer:ReplaceWeapons(player)
 
     --Remove all of the players customizations
@@ -114,26 +133,6 @@ function RandomizerServer:ReplaceWeapons(player)
     end
     player:SelectWeapon(WeaponSlot.WeaponSlot_6, Weapons[5], noAttachments)
     player:SelectWeapon(WeaponSlot.WeaponSlot_7, Weapons[6], noAttachments)     
-end
-
-function RandomizerServer:Respawn(player)
-    print("On Spawn Firing")
-    if player.soldier == nil then
-        print("Soldier didn't exist")
-    end
-
-    local timeDelayed = 0.0
-
-    Events:Subscribe('Engine:Update', function(deltaTime) 
-        timeDelayed = timeDelayed + deltaTime
-        if timeDelayed >= 0.09 then
-            print("Delayed spawn")
-            self:ReplaceWeapons(player)
-            timeDelayed = 0
-            Events:Unsubscribe('Engine:Update')
-        end
-    end)
-
 end
 
 function RandomizerServer:WeaponGeneration(primaryWeaponName)
@@ -199,7 +198,4 @@ function RandomizerServer:RandomizerAttachments(primaryWeaponName)
     return attachments
 end
 
-function RandomizerServer:PlayerCreated(player)
-    print("Player Created!")
-end
 g_RandomizerServer = RandomizerServer()
