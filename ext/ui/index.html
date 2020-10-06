@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?famaily=Roboto:wght@400&display=swap" rel="stylesheet">
 </head>
 <html>
     <body>
@@ -18,13 +18,13 @@
             function fade() {
                 var op = 1;  // initial opacity
                 var timer = setInterval(function () {
-                    if (op <= 0.1){
+                    if (op <= 0.05){
                         clearInterval(timer);
                         document.getElementById("mainDiv").style.display = 'none';
                     }
                     document.getElementById("mainDiv").style.opacity = op;
                     document.getElementById("mainDiv").style.filter = 'alpha(opacity=' + op * 100 + ")";
-                    op -= op * 0.1;
+                    op -= op * 0.09;
                 }, 50);
             }
             function show(){

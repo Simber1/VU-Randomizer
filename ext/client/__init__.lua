@@ -22,22 +22,14 @@ function RandomizerClient:RecivedWebEvent(data)
 end
 
 function RandomizerClient:NetEvent(data)
-    WebUI:ExecuteJS("show()")
-    -- WebUI:Call('Show')
     Execute = 'setWeaponName("'..data..'");'
     WebUI:ExecuteJS(Execute)
+    WebUI:ExecuteJS("show()")
     local timeDelayed = 0
     Events:Subscribe('Engine:Update', function(deltaTime) 
         timeDelayed = timeDelayed + deltaTime
         if timeDelayed >= 5 then
-            print("Fading")
             WebUI:ExecuteJS("fade()")
-            timeDelayed = 0
-            Events:Unsubscribe('Engine:Update')
-        end
-        if timeDelayed >= 5.8 then
-            print("hiding")
-            -- WebUI:call("Hide")
             timeDelayed = 0
             Events:Unsubscribe('Engine:Update')
         end
