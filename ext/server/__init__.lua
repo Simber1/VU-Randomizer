@@ -132,7 +132,9 @@ function RandomizerServer:ReplaceWeapons(player)
         player:SelectWeapon(WeaponSlot.WeaponSlot_5, Weapons[4], noAttachments)
     end
     player:SelectWeapon(WeaponSlot.WeaponSlot_6, Weapons[5], noAttachments)
-    player:SelectWeapon(WeaponSlot.WeaponSlot_7, Weapons[6], noAttachments)     
+    player:SelectWeapon(WeaponSlot.WeaponSlot_7, Weapons[6], noAttachments)    
+    
+    NetEvents:SendTo('RespawnWeaponNames', player, 'hello client!')
 end
 
 function RandomizerServer:WeaponGeneration(primaryWeaponName)
