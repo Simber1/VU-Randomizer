@@ -14,6 +14,7 @@ end
 
 function RandomizerClient:WebUIInit()
     WebUI:Init()
+    -- WebUI:Call('Hide')
 end
 
 function RandomizerClient:RecivedWebEvent(data)
@@ -21,8 +22,26 @@ function RandomizerClient:RecivedWebEvent(data)
 end
 
 function RandomizerClient:NetEvent(data)
+    WebUI:ExecuteJS("show()")
+    -- WebUI:Call('Show')
     Execute = 'setWeaponName("'..data..'");'
     WebUI:ExecuteJS(Execute)
+    local timeDelayed = 0
+    Events:Subscribe('Engine:Update', function(deltaTime) 
+        timeDelayed = timeDelayed + deltaTime
+        if timeDelayed >= 5 then
+            print("Fading")
+            WebUI:ExecuteJS("fade()")
+            timeDelayed = 0
+            Events:Unsubscribe('Engine:Update')
+        end
+        if timeDelayed >= 5.8 then
+            print("hiding")
+            -- WebUI:call("Hide")
+            timeDelayed = 0
+            Events:Unsubscribe('Engine:Update')
+        end
+    end)
 end
 
 g_RandomizerClient = RandomizerClient()

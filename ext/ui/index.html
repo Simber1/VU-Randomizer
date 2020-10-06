@@ -1,12 +1,37 @@
 <!DOCTYPE html>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+</head>
 <html>
-<body>
-    <h3 id="weaponName"></h3>
-    <script type="text/javascript">
-        function setWeaponName(name) {
-            var weaponLabel = document.getElementById("weaponName");
-            weaponLabel.innerText = name;
-        }
-    </script>
-</body>
+    <body>
+        <div id="mainDiv" style="display:flex; justify-content:center; align-items:flex-end; padding-top: 45%;opacity:0;">
+            <div style="background: rgba(40, 40, 40, 0.5);padding-left:1%;padding-right:1%;border-radius:5px;border:0px solid black">
+                <h3 id="weaponName" style="color:aliceblue; font-family: 'Roboto', sans-serif;"></h3>
+            </div>
+        </div>
+            
+        <script type="text/javascript">
+            function setWeaponName(name) {
+                var weaponLabel = document.getElementById("weaponName");
+                weaponLabel.innerText = name;
+            }
+            function fade() {
+                var op = 1;  // initial opacity
+                var timer = setInterval(function () {
+                    if (op <= 0.1){
+                        clearInterval(timer);
+                        document.getElementById("mainDiv").style.display = 'none';
+                    }
+                    document.getElementById("mainDiv").style.opacity = op;
+                    document.getElementById("mainDiv").style.filter = 'alpha(opacity=' + op * 100 + ")";
+                    op -= op * 0.1;
+                }, 50);
+            }
+            function show(){
+                document.getElementById("mainDiv").style.display = 'flex';
+                document.getElementById("mainDiv").style.opacity = 1;
+                document.getElementById("mainDiv").style.filter = 'alpha(opacity=' + 1 * 100 + ")";
+            }
+        </script>
+    </body>
 </html>
