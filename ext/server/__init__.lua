@@ -134,7 +134,10 @@ function RandomizerServer:ReplaceWeapons(player)
     player:SelectWeapon(WeaponSlot.WeaponSlot_6, Weapons[5], noAttachments)
     player:SelectWeapon(WeaponSlot.WeaponSlot_7, Weapons[6], noAttachments)    
     
-    NetEvents:SendTo('RespawnWeaponNames', player, 'hello client!')
+
+    local TextToPlayer = Weapons[1].name:match("/U_.+"):sub(4) .. ", " .. Weapons[2].name:match("/U_.+"):sub(4) .. ", " .. Weapons[3].name:match("/U_.+"):sub(4) .. ", " .. Weapons[4].name:match("/U_.+"):sub(4)
+    TextToPlayer = TextToPlayer:gsub("%_", " ")
+    NetEvents:SendTo('RespawnWeaponNames', player, TextToPlayer)
 end
 
 function RandomizerServer:WeaponGeneration(primaryWeaponName)
