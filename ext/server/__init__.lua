@@ -14,8 +14,8 @@ function RandomizerServer:RegisterVars()
     self.unlockTables = {}
 
     -- If you want to remove any weapon from the pool just remove it from this list
-    self.primaryTable = {"M39EBR","PP2000","MagpulPDR","P90","KH2002","PP-19","AEK971","MK11_RU","870","M98B","Jackhammer","A91","Pecheneg","SAIGA_20K","M27IAR","M16A4","HK417","AK74M_US","ACR","M4A1","SCAR-H","SCAR-L","M240","QBB-95","JNG90","UMP45","FAMAS","SteyrAug","L85A2","USAS-12","SVD_US","SVD","HK53","MK11","SPAS12","QBU-88_Sniper","QBZ-95B","G3A3","F2000","DAO-12","MTAR","Type88","SV98","M16_Burst","SKS","MP7","M16A4_RU","RPK-74M","M60","AN94","AK74M","SG553LB","AKS74u_US","G36C","M1014","MP5K","M40A5","ASVal","AKS74u","L96","RPK-74M_US","LSAT","M4A1_RU","M416","M249","M4","L86","M27IAR_RU","MG36"}
-    self.secondaryTable = {"M93R","Taurus44_Scoped","M9_Silenced","M9_TacticalLight","MP412Rex","Taurus44","Glock17","M1911_Silenced","M1911_Tactical","MP443_Silenced","M9","Glock18","Glock17_Silenced","M1911","MP443_TacticalLight","M9_RU","M1911_Lit","MP443","MP443_US","Glock18_Silenced"}
+    self.primaryTable = {"M39EBR","PP2000","MagpulPDR","P90","KH2002","PP-19","AEK971","870","M98B","Jackhammer","A91","Pecheneg","SAIGA_20K","M27IAR","M16A4","HK417","ACR","M4A1","SCAR-H","SCAR-L","M240","QBB-95","JNG90","UMP45","FAMAS","SteyrAug","L85A2","USAS-12","SVD","HK53","MK11","SPAS12","QBU-88_Sniper","QBZ-95B","G3A3","F2000","DAO-12","MTAR","Type88","SV98","M16_Burst","SKS","MP7","RPK-74M","M60","AN94","AK74M","SG553LB","G36C","M1014","MP5K","M40A5","ASVal","AKS74u","L96","LSAT","M416","M249","M4","L86","MG36"}
+    self.secondaryTable = {"M93R","Taurus44_Scoped","M9_Silenced","M9_TacticalLight","MP412Rex","Taurus44","Glock17","M1911_Silenced","M1911_Tactical","MP443_Silenced","M9","Glock18","Glock17_Silenced","M1911","MP443_TacticalLight","M1911_Lit","MP443","Glock18_Silenced"}
     self.thirdSlotTable = {"FIM92","SMAW","FGM148","Crossbow_Scoped_Cobra","MAV","M26Mass","UGS","M320_LVG","M320_HE","M320_SHG","M320_SMK","Crossbow_Scoped_RifleScope","RPG7","Medkit","Ammobag","Sa18IGLA","SOFLAM","M26Mass_Frag","M26Mass_Flechette","M26Mass_Slug"}
     self.fourthSlotTable = {"M224","Defib","EODBot","RadioBeacon","Repairtool","C4","M15","Claymore"}
     self.knivesTable = {"Knife_Razor","Knife"}
@@ -33,6 +33,7 @@ function RandomizerServer:RegisterEvents()
 	Events:Subscribe('Partition:Loaded', self, self.OnPartitionLoaded)
     Events:Subscribe('Level:Loaded', self, self.OnLevelLoaded)
     Events:Subscribe('Player:Respawn', self, self.Respawn)
+    Events:Subscribe('Player:KitPickup', self, self.KitPickup)
     print("RegisterEvents running")
 end
 
@@ -123,16 +124,19 @@ function RandomizerServer:ReplaceWeapons(player)
     --If the weapon is a medic or ammo bag put it in slot 4 if not put the gadget in slot 3
     local slotThreeName = Weapons[3].name:match("/U_.+"):sub(4)
     if slotThreeName == self.bagsTable[1] or slotThreeName == self.bagsTable[2] then
-        print("Using Slot 4 and 5")
         player:SelectWeapon(WeaponSlot.WeaponSlot_4, Weapons[3], noAttachments)
         player:SelectWeapon(WeaponSlot.WeaponSlot_5, Weapons[4], noAttachments)
     else
-        print("Using Slot 3 and 5")
         player:SelectWeapon(WeaponSlot.WeaponSlot_3, Weapons[3], noAttachments) 
         player:SelectWeapon(WeaponSlot.WeaponSlot_5, Weapons[4], noAttachments)
     end
     player:SelectWeapon(WeaponSlot.WeaponSlot_6, Weapons[5], noAttachments)
-    player:SelectWeapon(WeaponSlot.WeaponSlot_7, Weapons[6], noAttachments)     
+    player:SelectWeapon(WeaponSlot.WeaponSlot_7, Weapons[6], noAttachments)    
+    
+
+    local TextToPlayer = Weapons[1].name:match("/U_.+"):sub(4) .. ", " .. Weapons[2].name:match("/U_.+"):sub(4) .. ", " .. Weapons[3].name:match("/U_.+"):sub(4) .. ", " .. Weapons[4].name:match("/U_.+"):sub(4)
+    TextToPlayer = TextToPlayer:gsub("%_", " ")
+    NetEvents:SendTo('RespawnWeaponNames', player, TextToPlayer)
 end
 
 function RandomizerServer:WeaponGeneration(primaryWeaponName)
@@ -196,6 +200,12 @@ function RandomizerServer:RandomizerAttachments(primaryWeaponName)
     --Slapping all the attachments into 1 table
     local attachments = {possibleSights[math.random(#possibleSights)],possibleBarrels[math.random(#possibleBarrels)],possibleAmmos[math.random(#possibleAmmos)],possibleRails[math.random(#possibleRails)]}
     return attachments
+end
+
+
+function RandomizerServer:KitPickup(player, newCustomization)
+    -- print(newCustomization)
+    print(player.weapons)
 end
 
 g_RandomizerServer = RandomizerServer()
